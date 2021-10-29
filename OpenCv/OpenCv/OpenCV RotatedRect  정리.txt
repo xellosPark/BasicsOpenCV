@@ -1,0 +1,97 @@
+[RotatedRect 클래스]
+- 회전된 Rect를 뜻합니다.
+일반 Rect에서 몇도 Rotated 되었는지를 나타내는 Angle을 멤버변수로 가집니다.
+
+(클래스 구조)
+class RotatedRect
+{
+	public:
+    	RotatedRect();
+    	RotatedRect(const Point2f& _center, const Size3f& _size, float _angle); //중심, 사이즈, 앵글
+    	RotatedRect(const Point2f& point1, const Point2f& point2, const Point2f& point3);//세 점
+        
+        void points(Point2f pts[]) const; //네 꼭지점 좌표를 적용
+        Rect boundingRect() const; //회전된 사각형을 내부에 품는 가장 작은 사각형(정수)
+        Rect_<float> boundingRect2f() const; //회전된 사각형을 내부에 품는 가장 작은 사각형(실수)
+        
+        Point2f center;
+        Size2f size;
+        float angle;
+}
+: RotatedRect는 템플릿 클래스가 아닙니다.
+_angle은 기본이 시계방향, -값으로 하면 반시계방향입니다.
+
+(객체 생성)
+RotatedRect rr1(Point2f(40, 30), Size2f(40,20), 30.f)
+
+(boundingRect())
+Rect br = rr1.boundingRect()
+이렇게 사용하면 됩니다.
+이로써 나온 사각형을 바운딩 박스라 부르며,
+
+				-------------------------
+				-		-				-
+				-	  -	  -				-----> Bounding Box
+				-	-		-			-
+				- -			  -  		-
+				-	-			-		-
+				-	  -			  -		-
+				-	    -			-	-
+				-		  -			  -	-
+				-		    -		-	-
+				-		      -  - 		-
+				-------------------------
+
+위와 같이, 회전된 사각형이 그냥 사각형으로써 화면에 차지하는 부분을 나타냅니다.
+화면 배치에 있어서 계산을 쉽게 하기 위해 존재하죠.
+
+
+[Range 클래스]
+- 도형이 아닌 말 그대로 범위를 뜻하는 클래스입니다.
+
+(클래스 구조)
+class Range
+{
+public:
+	Range();
+    Range(int _start, int _end);
+    
+    int size() const; //end - start
+    bool empty() const; //start == end
+    static Range all(); //start=INT_MIN, end = INT_MAX
+    int start, end;
+}
+ 
+
+(객체 생성)
+Range r1(0,10)
+: int 0에서 '9'까지를 포함합니다.
+
+[String 클래스]
+- OpenCV에서의 String을 다루는 클래스입니다.
+문자열을 다루고, 문자열을 출력하는 기능까지 제공합니다.
+C++의 STL 속, std::string 클래스처럼,
+OpenCV에도 cv::string 클래스가 있습니다.(있었습니다.)
+std::string과 사용법이 완전히 호환되므로, 이후 OpenCV 4.0버전부터는 자체 string을 지우고,
+그냥 std::string을 재정의하여 사용합니다.
+
+ 
+
+(데이터타입 재정의)
+- typedef std::string String;
+
+(string 사용)
+- String str1 = "Hello";
+String str2 = "World";
+String str3 = str1 + " " + str2; //str3="Hello World"
+- bool ret = (str1 == "WORLD"); //False 대소문자 구분
+
+- OpenCV 제공 Format 함수
+: format 함수로 특정 형식의 문자열을 만들수 있습니다.
+Mat imgs[3];
+for(int i = 0; i<3; i++)
+{
+	String filename = format("test%02d.bmp", i+1); //printf와 같이 format을 이용해 String을 생성합니다.
+    imgs[i] = imread(filename);
+}
+ 

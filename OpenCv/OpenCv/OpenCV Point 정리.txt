@@ -1,0 +1,47 @@
+//OpenCV 자료형 정리
+Point 정리
+[Point_ 클래스]
+- 2차원 평면 위에 있는 점의 좌표를 표현하는 템플릿 클래스입니다.
+- 멤버변수로는 x, y가 있습니다.
+template<typename _Tp> class Point_
+{
+public:
+	Point_(); //기본 생성자
+    Point_(_Tp _x, _Tp _y); //_Tp타입 생성자
+    Point_(const Point_& pt); //복사 생성자
+    
+    Point_& operator = (const Point_& pt); //대입 연산자 재정의
+    
+    //각 메서드 정의
+    _Tp dot(const Point_& pt) const;		//내적 계산
+    double ddot(const Point_& pt) const;	//내적 결과값 double로 반환  return (double)x*pt.x + (double)y*pt.y;
+    double cross(const Point_& pt) const;	//외적 계산
+    bool inside(const Rect_<_Tp>& r) const; //점의 좌표가 Rect 영역 안에 있으면 True 반환
+
+    
+    _Tp x, y;
+};
+
+//클래스 이름 재정의
+typedef Point_<int> Point2i;
+typedef Point_<int64> Point2l;
+typedef Point_<float> Point2f;
+typedef Point_<double> Point2d;
+typedef Point2i Point; //기본 Point 타입은 Point2i를 정의
+
+(객체 생성)
+Point pt1; //pt1 = (0,0)
+pt1.x = 5; pt1.y = 10; //pt1 = (5,10)
+Point pt2(10, 30); //pt2 = (10,30)
+
+(Point 연산)
+- 대입연산자 이외에 다양한 연산자에 대해 재정의 되어있습니다.
+//pt1 = [5,10], pt2 = [10,30]
+Point pt3 = pt1 + pt2; //pt3 = [15,40]
+Point pt4 = pt1 * 2; //pt4 = [10,20]
+int d1 = pt1.dot(pt2); //d1 = 350
+bool b1 = (pt1 == pt2); //b1 = false
+
+(Point 값 출력)
+std::cout << "pt1: "<< pt1 << std::endl; //pt1: [5,10]
+std::cout << "pt2: "<< pt2 << std::endl; //pt2: [10,30]

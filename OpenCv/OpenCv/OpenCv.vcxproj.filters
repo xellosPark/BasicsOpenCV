@@ -16,6 +16,11 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
+    <Text Include="OpenCV Point 정리.txt" />
+    <Text Include="OpenCV Size 정리.txt" />
+    <Text Include="OpenCV Rect 정리.txt" />
+    <Text Include="OpenCV RotatedRect  정리.txt" />
+    <Text Include="OpenCV Mat클래스정리.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OpenCv.h">

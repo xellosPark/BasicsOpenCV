@@ -92,10 +92,14 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir)OpenCv\OpenCV_DLL\include;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)OpenCv\OpenCV_DLL;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opencv_world412d.lib</AdditionalDependencies>
+      <DelayLoadDLLs>opencv_world412d.dll</DelayLoadDLLs>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -115,10 +119,14 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir)OpenCV_DLL\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)OpenCV_DLL;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opencv_world412d.lib</AdditionalDependencies>
+      <DelayLoadDLLs>opencv_world412d.dll</DelayLoadDLLs>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -187,6 +195,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
+    <Text Include="OpenCV Point 정리.txt" />
+    <Text Include="OpenCV Size 정리.txt" />
+    <Text Include="OpenCV Rect 정리.txt" />
+    <Text Include="OpenCV RotatedRect  정리.txt" />
+    <Text Include="OpenCV Mat클래스정리.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="OpenCv.h" />
@@ -217,4 +230,9 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="OpenCv.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
 </Project>

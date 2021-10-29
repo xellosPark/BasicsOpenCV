@@ -1,0 +1,45 @@
+[Size_ 클래스]
+
+- 영상 또는 사각형 영역의 크기를 표현할 때에는 Size_ 클래스를 사용합니다. Size_클래스는 사각형 영역의 가로와 세로 크기를 나타내는 width와 height 멤버 변수를 가지고 있습니다.
+(C++ 코드 - 클래스 구조)
+template<typename _Tp> class Size_
+{
+public:
+	Size_(); //기본 생성자
+    Size_(_Tp _width, _Tp _height); //_Tp 타입 생성자
+    Size_(const Size_& sz); //복사 생성자
+    
+    //연산자 재정의
+    Size_& operator = (const Size_& sz);
+    
+    //메소드 정의
+    _Tp area() const; //면적 반환 const  //_Tp result = width * height;
+    bool empty() const; //유효하지 않으면 True
+    
+    //멤버변수
+    _Tp width, height;
+};
+
+//타입명 재정의
+typedef Size_<int> Size2i;
+typedef Size_<int64> Size2l;
+typedef Size_<float> Size2f;
+typedef Size_<double> Size2d;
+typedef Size2i Size;
+ 
+
+(객체 생성)
+Size sz1, sz2(10,20); //sz1 = [0x0], sz2 = [10x20]
+sz1.width = 5; sz1.height = 10; //sz1 = [5x10]
+
+(Size연산)
+- 대입연산자 이외에 다양한 연산자에 대해 재정의 되어있습니다.
+//sz1 = [5x10], sz2 = [10x20]
+Size sz3 = sz1 + sz2; //sz3 = [15x30]
+Size sz4 = sz1 * 2; //sz4 = [10x20]
+int area1 = sz4.area(); //area1 = 200
+ 
+
+(Size값 출력)
+cout<<'sz3: ' << sz3<<endl; //sz3:[15x30]
+cout<<'sz4: ' << sz4<<endl; //sz4:[10x20]

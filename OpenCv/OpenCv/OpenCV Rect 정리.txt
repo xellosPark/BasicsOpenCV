@@ -1,0 +1,68 @@
+- OpenCV에서 사각형의 위치와 크기 정보를 표현할때 사용하는 클래스입니다.
+- 화면좌표계 상으로, 좌측 상단, 시작 점의 좌표를 나타내는 x, y 멤버 변수, 그리고 점의 우측으로의 길이를 나타내는 width,
+  점의 아래쪽으로 높이를 나타내는 height 멤버 변수를 지닙니다.
+
+template<typename _Tp> class Rect_
+{
+public:
+	Rect_(); //기본 생성자
+	Rect_(_Tp _x, _Tp _y, _Tp _width, _Tp _height); //개별 멤버변수 초기화
+	Rect_(const Rect_& r); //복사 생성자
+	Rect_(const Point_<_Tp>& org, const Size_<_Tp>& sz); //좌측 상단 점의 좌표와 사이즈 크기로 생성
+	Rect_(const Point_<_Tp>& pt1, const Point_<_Tp>& pt2);//좌측 상단과 우측 하단 점으로 생성
+    
+    //연산자 재정의
+    Rect_& operator = ( const Rect_& r );
+    
+    //메소드 정의
+    Point_<_Tp> tl() const; //좌측 상단 점 반환
+    Point_<_Tp> br() const; //우측 하단 점 반환
+    Size_<_Tp> size() const; //사각형 크기 정보 반환
+    _Tp area() const; //사각형 면적 반환
+    bool empty() const; //사각형이 유효하지 않으면 True 반환
+    bool contains(const Point_<_Tp>& pt) const; //매개변수의 점이 사각형 좌표 안에 포함되면 True 반환
+    
+    _Tp x, y, width, height;
+};
+
+typedef Rect_<int> Rect2i;
+typedef Rect_<float> Rect2f;
+typedef Rect_<double> Rect2d;
+typedef Rect2i Rect;
+
+(객체 생성)
+
+Rect rc1; //rc1 = [0x0 from (0,0)]
+Rect rc2(10,10,60,40); //rc2 = [60x40 from (10,10)]
+(Rect_ 연산)
+
+// rc1 = [0x0 from (0,0)] rc2 = [60x40 from (10,10)]
+Rect rc3 = rc1 + Size(50, 40); //rc3 = [50x40 from(0,0)]
+Rect rc4 = rc2 + Point(10, 10); //rc4 = [60x40 from(20,20)]
+: Rect내의 Size를 연산할수 있고, Point를 연산할수 있습니다.
+
+ 
+- Rect별 논리 연산자
+//rc3 = [50x40 from(0,0)], rc4 = [60x40 from (20,20)]
+Rect rc5 = rc3 & rc4; //rc5 = [30x20 from (10,10)]
+Rect rc6 = rc3 | rc4; //rc6 = [80x60 from (0,0)]
+: &연산은, 두 사각형이 교차하는 사각형 영역을 반환합니다.
+|연산은 두 사각형을 모두 포함하는 최소 크기의 사각형을 반환합니다.
+									  -------------------------
+	--------------					  -	--------------        -
+	-	         -					  -	-	         -        -
+	-			 -					  -	-			 -        -
+	-      --------------			  -	-      -------------- -
+	-      -rc3& -      -			  -	-      -	 -      - -
+	-      -rc4	 -		-			  -	-      -	 -		- -
+	--------------      -			  -	--------------      - -
+		   -            -			  -		   -            - -
+		   -            -			  -		   -            - -
+		   --------------			  -		   ----------------
+							          -------------------------
+									  rc3&rc4	
+
+(Rect_ 출력)
+cout<<"rc5: "<<rc5<<endl; //rc5: [30x20 from(20,20)]
+cout<<"rc6: "<<rc6<<endl; //rc6: [80x60 from(0,0)]
+ 
