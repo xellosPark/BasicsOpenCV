@@ -71,6 +71,11 @@ BEGIN_MESSAGE_MAP(COpenCvDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_BTN_IMAGE_LOAD, &COpenCvDlg::OnBnClickedBtnImageLoad)
 	ON_WM_DESTROY()
+	ON_BN_CLICKED(IDC_BTN_MET_COPY, &COpenCvDlg::OnBnClickedBtnMetCopy)
+	ON_BN_CLICKED(IDC_BTN_MET_IMAGE_PART, &COpenCvDlg::OnBnClickedBtnMetImagePart)
+	ON_BN_CLICKED(IDC_BTN_VIDOEO_LOAD2, &COpenCvDlg::OnBnClickedBtnVidoeoLoad2)
+	ON_BN_CLICKED(IDC_BTN_VIDOEO_PLAY, &COpenCvDlg::OnBnClickedBtnVidoeoPlay)
+	ON_BN_CLICKED(IDC_BTN_VIDOEO_SAVE, &COpenCvDlg::OnBnClickedBtnVidoeoSave)
 END_MESSAGE_MAP()
 
 
@@ -209,14 +214,308 @@ void COpenCvDlg::OnBnClickedBtnImageLoad()
 		imshow("image", cv_matImg); // "Image"라는 이름의 창에 이미지를 넣어 보여줌
 		// waitKey(int delay)	 
 		waitKey(); // 종료 키 대기
+		destroyAllWindows();
 	}
 }
 
+void COpenCvDlg::OnBnClickedBtnMetCopy()
+{
+	CFileDialog fileDlg(TRUE, NULL, NULL, OFN_READONLY, _T("image file(*.jpg;*.bmp;*.png;)|*.jpg;*.bmp;*.png;|All Files(*.*)|*.*||"));
+	Mat cv_Img1; // 이미지 정보를 담고 있는 객체.
+	if (fileDlg.DoModal() == IDOK)
+	{
+
+		CString path = fileDlg.GetPathName();
+		CT2CA pszString(path);
+		std::string strPath(pszString);
+		
+		cv_Img1 = imread(strPath, IMREAD_UNCHANGED);
+
+		if (cv_Img1.empty()) {
+			return;
+		}
+
+		Mat cv_Img2 = cv_Img1;
+		Mat cv_Img3;
+		cv_Img3 = cv_Img1;
+
+		Mat cv_Img4 = cv_Img1.clone(); // 깊은 복사
+		Mat cv_Img5; cv_Img1.copyTo(cv_Img5); // 깊은 복사
+
+		cv_Img1.setTo(Scalar(0,255,255)); // yellow
+		
+		
+		imshow("img1", cv_Img1); // "Image"라는 이름의 창에 이미지를 넣어 보여줌
+		imshow("img2", cv_Img2); // "Image"라는 이름의 창에 이미지를 넣어 보여줌
+		imshow("img3", cv_Img3); // "Image"라는 이름의 창에 이미지를 넣어 보여줌
+		imshow("img4", cv_Img4); // "Image"라는 이름의 창에 이미지를 넣어 보여줌
+		imshow("img5", cv_Img5); // "Image"라는 이름의 창에 이미지를 넣어 보여줌
+								 // waitKey(int delay)	 
+		waitKey(); // 종료 키 대기
+		destroyAllWindows();
+	}
+}
 
 void COpenCvDlg::OnDestroy()
 {
 	CDialogEx::OnDestroy();
-	waitKey(); // 종료 키 대기
-	Point_
-	Size_
+
+}
+
+
+void COpenCvDlg::OnBnClickedBtnMetImagePart()
+{
+	CFileDialog fileDlg(TRUE, NULL, NULL, OFN_READONLY, _T("image file(*.jpg;*.bmp;*.png;)|*.jpg;*.bmp;*.png;|All Files(*.*)|*.*||"));
+	Mat cv_Img1; // 이미지 정보를 담고 있는 객체.
+	if (fileDlg.DoModal() == IDOK)
+	{
+
+		CString path = fileDlg.GetPathName();
+		CT2CA pszString(path);
+		std::string strPath(pszString);
+
+		cv_Img1 = imread(strPath, IMREAD_UNCHANGED);
+		if (cv_Img1.empty()){
+			return;
+		}
+
+		
+		Mat cv_Img2 = cv_Img1(Rect(10, 10, 200, 200));
+		Mat cv_Img3 = cv_Img1(Rect(10, 10, 200, 200)).clone(); // 깊은 복사
+
+		//~ NOT 연산자 색상 반전
+		cv_Img2 = ~cv_Img2;
+
+
+		
+		imshow("image", cv_Img2); // "Image"라는 이름의 창에 이미지를 넣어 보여줌
+		imshow("image2", cv_Img3); // "Image"라는 이름의 창에 이미지를 넣어 보여줌
+		waitKey(); // 종료 키 대기
+		destroyAllWindows();
+		
+	}
+}
+
+
+void COpenCvDlg::OnBnClickedBtnVidoeoLoad2()
+{
+	//////////////////////////////////////////////////////////////////////////
+	// ** VideoCaptureAPIs 열거형 상수 설명
+	//CAP_ANY									- 자동 선택
+	//CAP_V4L, CAP_V4L2							- V4L / V4L2(리눅스)
+	//CAP_FIREWIRE, CAP_FIREWARE, CAP_IEEE1394	- IEEE 1394 드라이버
+	//CAP_DSHOW									- 다이렉트쇼(DirectShow)
+	//CAP_PVAPI									- PvAPI, Prosilica GigE SDK
+	//CAP_OPENNI								- OpenNI
+	//CAP_MSMF									- 마이크로소프트 미디어 파운데이션
+	//CAP_GSTREAMER								- GStreamer
+	//CAP__FFMPEG								- FFMPEG 라이브러리
+	//CAP_IMAGES								- OpenCV에서 지원하는 일련의 영상파일(예시 "img_%02.jpg")
+	//CAP_OPENCV_MJPEG							- OpenCV에 내장된 MotionJPEG 코덱
+
+	// ** index: 카메라와 장치 사용 방식 지정번호로,
+	//index = camera_id + domain_offset_i로 이루어져 있습니다. 만약 컴퓨터에 한대의 카메라만 연결되었으면, camera_id는 0입니다.
+	//두대 이상의 카메라의 경우는, camera_id가 0부터 시작해서, 각 ID를 사용합니다.
+	//domain_offset_id는, 카메라를 사용하는 방식을 표현하는 정수 값으로, VideoCaptureAPIs를 사용합니다.
+	//보통은, 0(CAP_ANY)를 사용하니, index 값은 결국 camera_id와 같이 사용합니다.
+	
+
+	VideoCapture cap(0);
+
+	if (cap.isOpened() == FALSE)
+	{
+		AfxMessageBox(_T("캠을 없습니다."));
+		return;
+	}
+	// 각각 너비와 높이
+	//double로 가져오니, OpenCV에서 제공하는, 반올림 함수인 cvRound()를 사용해서 정수로 변환하면 됩니다.
+	//int w = cvRound(cap.get(CAP_PROP_FRAME_WIDTH));
+	//int h = cvRound(cap.get(CAP_PROP_FRAME_HEIGHT));
+
+	Mat frame, inversed;
+	while (true)
+	{ 
+		cap >> frame;
+		// 해당 프레임 영상이 비어 있으면 빠져나감
+		if ( frame.empty())	{ AfxMessageBox(_T("프레임 영상이 EMPTY 상태입니다.")); break; }
+		
+		inversed = ~frame;
+
+		imshow("frame", frame);
+		imshow("inversed", inversed);
+
+		// ECS Key
+		if ( waitKey(10) == 27){ break; }
+	}
+	destroyAllWindows();
+}
+
+
+void COpenCvDlg::OnBnClickedBtnVidoeoPlay()
+{
+	//////////////////////////////////////////////////////////////////////////
+	//-propId
+	//VideoCaptureProperties	//설명
+	//CAP_PROP_POS_MSEC			//비디오 파일에서 현재 위치(밀리초 단위)
+	//CAP_PROP_POS_FRAMES		//현재 프레임 위치(0 - 기반)
+	//CAP_PROP_POS_AVI_RATIO	//[0, 1]구간으로 표현한 동영상 프레임의 상대적 위치(0: 시작, 1 : 끝)
+	//CAP_PROP_FRAME_WIDTH		//비디오 프레임의 가로 크기
+	//CAP_PROP_FRAME_HEIGHT		//비디오 프레임의 세로 크기
+	//CAP_PROP_FPS				//초당 프레임 수
+	//CAP_PROP_FOURCC			//fourcc 코드(코덱을 표현하는 정수 값)
+	//CAP_PROP_FRAME_COUNT		//비디오 파일의 전체 프레임 수
+	//CAP_PROP_BRIGHTNESS		//(카메라에서 지원하는 경우) 밝기 조절
+	//CAP_PROP_CONTRAST			//(카메라에서 지원하는 경우) 명암비 조절
+	//CAP_PROP_SATURATION		//(카메라에서 지원하는 경우) 채도 조절
+	//CAP_PROP_HUE				//(카메라에서 지원하는 경우) 색상 조절
+	//CAP_PROP_GAIN				//(카메라에서 지원하는 경우) 감도 조절
+	//CAP_PROP_EXPOSURE			//(카메라에서 지원하는 경우) 노출 조절
+	//CAP_PROP_ZOOM				//(카메라에서 지원하는 경우) 줌 조절
+	//CAP_PROP_FOCUS			//(카메라에서 지원하는 경우) 초점 조절
+
+
+
+	CFileDialog fileDlg(TRUE, NULL, NULL, OFN_READONLY, _T("Moving file(*.AVI, *.MP4, *.WMV) | *.AVI;*.MP4;*.WMV | All Files(*.*)|*.*||"));
+
+	if (fileDlg.DoModal() == IDOK)
+	{
+		CString path = fileDlg.GetPathName();
+		CT2CA pszString(path);
+		std::string strPath(pszString);
+
+		VideoCapture cap(strPath);
+
+		if (!cap.isOpened()) {
+			cerr << "Video open failed!" << endl;
+			return;
+		}
+		// "Frame width: " << cvRound(cap.get(CAP_PROP_FRAME_WIDTH)) << endl;
+		// "Frame height:" << cvRound(cap.get(CAP_PROP_FRAME_HEIGHT)) << endl;
+		// "Frame count: " << cvRound(cap.get(CAP_PROP_FRAME_COUNT)) << endl;
+
+		double fps = cap.get(CAP_PROP_FPS);
+		// "FPS: " << fps << endl;
+
+		int delay = cvRound( 1000 / fps );
+
+		Mat frame, inversed;
+
+		while (true) {
+			cap >> frame;
+			if (frame.empty())
+				break;
+			inversed = ~frame;
+
+			imshow("frame", frame);
+			//imshow("inversed", inversed);
+
+			if (waitKey(delay) == 27)
+				break;
+		}
+		destroyAllWindows();
+		
+
+
+// 		CClientDC dc(this);
+// 		CDC *pDC;
+// 		CRect rect;
+// 
+// 		pDC = m_picCameraWide.GetDC();
+// 		m_picCameraWide.GetClientRect(rect);
+// 
+// 		IplImage *m_PlayFrame;
+// 		CvCapture *capture = cvCaptureFromFile(m_PlayFileName);
+// 
+// 		while (capture)
+// 		{
+// 			m_PlayFrame = cvQueryFrame(capture);
+// 			m_cvvImage.CopyOf((IplImage *)m_PlayFrame);
+// 			m_cvvImage.DrawToHDC(pDC->m_hDC, rect);
+// 		}
+//		cvReleaseCapture(&capture);
+//		ReleaseDC(pDC);
+
+
+
+	}
+}
+
+
+void COpenCvDlg::OnBnClickedBtnVidoeoSave()
+{
+	// **(VideoWriter 객체 생성)
+	//	- 파일을 쓰기 위한 스트림을 엽니다.
+	//
+	//	VideoWriter::VideoWriter(const String& filename, int fourcc, double fps,
+	//		Size frameSize, bool isColor = true);
+	//
+	// bool VideoWriter::open(const String& filename, int fourcc, double fps,
+	//	Size frameSize, bool isColor = true);
+	//: 위와 같은 메서드로 되어있고, 생성자로 열거나, 혹은 open 메서드로 엽니다.
+	//	file : 저장할 동영상 파일 이름
+	//	fourcc : 동영상 압축 코덱을 표현하는 4 - 문자코드
+	//	fps : 저장할 동영상의 초당 프레임 수
+	//	frameSize : 동영상 프레임의 가로 및 세로 크기
+	//	isColor : 이 값이 true이면 컬러 동영상으로 저장하고, false면, 그레이스케일입니다.이 플래그는 windows 에서만 동작합니다.
+	//	반환값 : 성공시 true, 실패시 false
+
+	//-fourcc : 동영상 파일로 저장시, 속성을 지정합니다. 4글자로 이루어져 있으며, 각각 파일 코덱, 압축방식, 색상 혹은 픽셀 포맷 등을 정의하는 정수값입니다.
+	//이 정수 값은, static int VideoWriter::fourcc(char c1, char c2, char c3, char c4);
+
+
+	//fourcc 코드 생성 방법	코덱 설명
+	//	VideoWriter::fourcc('D', 'I', 'V', 'X')		-DivX MPEG - 4 코덱
+	//	VideoWriter::fourcc('X', 'V', 'I', 'D')		-XVID MPEG - 4 코덱
+	//	VideoWriter::fourcc('F', 'M', 'P', '4')		-FFMPEG MPEG4 코덱
+	//	VideoWriter::fourcc('W', 'M', 'V', '2')		-Windows Media Video 8 코덱
+	//	VideoWriter::fourcc('M', 'J', 'P', 'G')		-모션 JPEG 코덱
+	//	VideoWriter::fourcc('Y', 'V', '1', '2')		-YUV 4:2 : 0 Planar(비압축)
+	//	VideoWriter::fourcc('X', '2', '6', '4')		-H.264 / AVC 코덱
+	//	VideoWriter::fourcc('A', 'V', 'C', '1')		-Advanced Video 코덱
+
+	VideoCapture cap(0);
+
+	if (!cap.isOpened()) {
+		cerr << "Camera open failed!" << endl;
+		return;
+	}
+
+	int w = cvRound(cap.get(CAP_PROP_FRAME_WIDTH));
+	int h = cvRound(cap.get(CAP_PROP_FRAME_HEIGHT));
+
+	double fps = cap.get(CAP_PROP_FPS);
+	//int fourcc = VideoWriter::fourcc('D', 'I', 'V', 'X');
+	int fourcc = VideoWriter::fourcc('M', 'J', 'P', 'G');
+	int delay = cvRound(1000 / fps);
+
+	//OpenCV VideoWriter setting
+	//codec info
+	//https://thebook.io/006939/ch04/01/04-02/
+
+	//VideoWriter outputVideo("output.avi", fourcc, fps, Size(w, h));
+	VideoWriter outputVideo("output.avi", fourcc, 15, Size(w, h));
+
+	if ( outputVideo.isOpened() == FALSE) {
+		AfxMessageBox(_T("File open failed!"));
+		return;
+	}
+
+	Mat frame, inversed;
+	while (true) {
+		cap >> frame;
+		if (frame.empty())
+			break;
+
+		inversed = ~frame;
+		//outputVideo << inversed;
+		outputVideo << frame;
+
+		imshow("frame", frame);
+		//imshow("inversed", inversed);
+
+		if (waitKey(delay) == 27)
+			break;
+	}
+
+	destroyAllWindows();
 }

@@ -34,4 +34,9 @@ protected:
 public:
 	afx_msg void OnBnClickedBtnImageLoad();
 	afx_msg void OnDestroy();
+	afx_msg void OnBnClickedBtnMetCopy();
+	afx_msg void OnBnClickedBtnMetImagePart();
+	afx_msg void OnBnClickedBtnVidoeoLoad2();
+	afx_msg void OnBnClickedBtnVidoeoPlay();
+	afx_msg void OnBnClickedBtnVidoeoSave();
 };
