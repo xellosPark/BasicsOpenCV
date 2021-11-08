@@ -6,16 +6,11 @@
 #include "OpenCv.h"
 #include "OpenCvDlg.h"
 #include "afxdialogex.h"
-#include <opencv2/opencv.hpp>
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
-
-using namespace cv;
-using namespace std;
-
 
 // 응용 프로그램 정보에 사용되는 CAboutDlg 대화 상자입니다.
 
@@ -51,7 +46,7 @@ END_MESSAGE_MAP()
 
 
 // COpenCvDlg 대화 상자
-
+#define MESSAGE_VIDOEO_REC	WM_USER
 
 
 COpenCvDlg::COpenCvDlg(CWnd* pParent /*=NULL*/)
@@ -76,6 +71,9 @@ BEGIN_MESSAGE_MAP(COpenCvDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_VIDOEO_LOAD2, &COpenCvDlg::OnBnClickedBtnVidoeoLoad2)
 	ON_BN_CLICKED(IDC_BTN_VIDOEO_PLAY, &COpenCvDlg::OnBnClickedBtnVidoeoPlay)
 	ON_BN_CLICKED(IDC_BTN_VIDOEO_SAVE, &COpenCvDlg::OnBnClickedBtnVidoeoSave)
+	ON_BN_CLICKED(IDC_BTN_LIVE_REC_PLAY, &COpenCvDlg::OnBnClickedBtnLiveRecPlay)
+	ON_BN_CLICKED(IDC_BTN_LIVE_REC_STOP, &COpenCvDlg::OnBnClickedBtnLiveRecStop)
+	ON_MESSAGE(MESSAGE_VIDOEO_REC, &COpenCvDlg::UpdateVidoRec)
 END_MESSAGE_MAP()
 
 
@@ -501,9 +499,10 @@ void COpenCvDlg::OnBnClickedBtnVidoeoSave()
 	}
 
 	Mat frame, inversed;
-	while (true) {
+	while (true)
+	{
 		cap >> frame;
-		if (frame.empty())
+		if ( frame.empty() )
 			break;
 
 		inversed = ~frame;
@@ -518,4 +517,247 @@ void COpenCvDlg::OnBnClickedBtnVidoeoSave()
 	}
 
 	destroyAllWindows();
+}
+
+BOOL COpenCvDlg::SetLiveView()
+{
+	//mat_frame가 입력 이미지입니다. 
+	captureLive->read(mat_frame);
+	
+	if (mat_frame.empty())
+	{
+		return FALSE;
+	}
+	
+	//이곳에 OpenCV 함수들을 적용합니다.
+	//여기에서는 그레이스케일 이미지로 변환합니다.
+	//cvtColor(mat_frame, mat_frame, COLOR_BGR2GRAY);
+
+	//화면에 보여주기 위한 처리입니다.
+	int bpp = 8 * mat_frame.elemSize();
+// 	assert((bpp == 8 || bpp == 24 || bpp == 32));
+// 
+// 	int padding = 0;
+// 	//32 bit image is always DWORD aligned because each pixel requires 4 bytes
+// 	if (bpp < 32)
+// 		padding = 4 - (mat_frame.cols % 4);
+// 
+// 	if (padding == 4)
+// 		padding = 0;
+// 
+// 	int border = 0;
+// 	//32 bit image is always DWORD aligned because each pixel requires 4 bytes
+// 	if (bpp < 32)
+// 	{
+// 		border = 4 - (mat_frame.cols % 4);
+// 	}
+// 
+// 	Mat mat_temp;
+// 	if (border > 0 || mat_frame.isContinuous() == false)
+// 	{
+// 		// Adding needed columns on the right (max 3 px)
+// 		cv::copyMakeBorder(mat_frame, mat_temp, 0, 0, 0, border, cv::BORDER_CONSTANT, 0);
+// 	}
+// 	else
+// 	{
+// 		mat_temp = mat_frame;
+// 	}		
+
+	CreateBitmapInfo(mat_frame.cols, mat_frame.rows, bpp);
+
+// 	CStatic *p_Picture = (CStatic *)GetDlgItem(IDC_PICTURE_LIVE);
+// 	RECT r;
+// 	p_Picture->GetClientRect(&r);
+// 	//m_picture.GetClientRect(&r);
+// 	cv::Size winSize(r.right, r.bottom);
+// 	cimage_mfc.Create(winSize.width, winSize.height, 24);
+// 
+// 
+// 	BITMAPINFO* bitInfo = (BITMAPINFO*)malloc(sizeof(BITMAPINFO) + 256 * sizeof(RGBQUAD));
+// 	bitInfo->bmiHeader.biBitCount = bpp;
+// 	bitInfo->bmiHeader.biWidth = mat_temp.cols;
+// 	bitInfo->bmiHeader.biHeight = -mat_temp.rows;
+// 	bitInfo->bmiHeader.biPlanes = 1;
+// 
+// 	bitInfo->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+// 	bitInfo->bmiHeader.biCompression = BI_RGB;
+// 	bitInfo->bmiHeader.biClrImportant = 0;
+// 	bitInfo->bmiHeader.biClrUsed = 0;
+// 	bitInfo->bmiHeader.biSizeImage = 0;
+// 	bitInfo->bmiHeader.biXPelsPerMeter = 0;
+// 	bitInfo->bmiHeader.biYPelsPerMeter = 0;
+// 
+// 
+// 	//그레이스케일 인경우 팔레트가 필요
+// 	if (bpp == 8)
+// 	{
+// 		RGBQUAD* palette = bitInfo->bmiColors;
+// 		for (int i = 0; i < 256; i++)
+// 		{
+// 			palette[i].rgbBlue = palette[i].rgbGreen = palette[i].rgbRed = (BYTE)i;
+// 			palette[i].rgbReserved = 0;
+// 		}
+// 	}
+// 
+// 	// Image is bigger or smaller than into destination rectangle
+// 	// we use stretch in full rect
+// 	if (mat_temp.cols == winSize.width && mat_temp.rows == winSize.height)
+// 	{
+// 		// source and destination have same size
+// 		// transfer memory block
+// 		// NOTE: the padding border will be shown here. Anyway it will be max 3px width
+// 
+// 		SetDIBitsToDevice(cimage_mfc.GetDC(),
+// 			//destination rectangle
+// 			0, 0, winSize.width, winSize.height,
+// 			0, 0, 0, mat_temp.rows,
+// 			mat_temp.data, bitInfo, DIB_RGB_COLORS);
+// 	}
+// 	else
+// 	{
+// 		// destination rectangle
+// 		int destx = 0, desty = 0;
+// 		int destw = winSize.width;
+// 		int desth = winSize.height;
+// 
+// 		// rectangle defined on source bitmap
+// 		// using imgWidth instead of mat_temp.cols will ignore the padding border
+// 		int imgx = 0, imgy = 0;
+// 		int imgWidth = mat_temp.cols - border;
+// 		int imgHeight = mat_temp.rows;
+// 
+// 		StretchDIBits(cimage_mfc.GetDC(),
+// 			destx, desty, destw, desth,
+// 			imgx, imgy, imgWidth, imgHeight,
+// 			mat_temp.data, bitInfo, DIB_RGB_COLORS, SRCCOPY);
+// 	}
+// 	
+// 	HDC dc = ::GetDC(p_Picture->m_hWnd);
+// 	cimage_mfc.BitBlt(dc, 0, 0);
+// 
+// 	::ReleaseDC(p_Picture->m_hWnd, dc);
+// 	cimage_mfc.ReleaseDC();
+// 	cimage_mfc.Destroy();
+
+	return TRUE;
+}
+
+
+void COpenCvDlg::OnBnClickedBtnLiveRecPlay()
+{
+	// Rec start
+	if (m_bVidoRec == FALSE)
+	{
+		captureLive = new VideoCapture(0);
+		if (!captureLive->isOpened())
+		{
+			AfxMessageBox(_T("프레임 영상이 EMPTY 상태입니다."));
+			return;
+		}
+
+		int w = cvRound(captureLive->get(CAP_PROP_FRAME_WIDTH));
+		int h = cvRound(captureLive->get(CAP_PROP_FRAME_HEIGHT));
+
+
+		m_bVidoRec = TRUE;
+		m_isWorkingThread = TRUE;
+		m_pThread = AfxBeginThread(ThreadForCounting, this);
+	}
+}
+
+void COpenCvDlg::OnBnClickedBtnLiveRecStop()
+{
+	if (m_bVidoRec == FALSE)
+	{
+		return;
+	}
+	m_bVidoRec = FALSE;
+	m_isWorkingThread = FALSE;
+	WaitForSingleObject(m_pThread->m_hThread, 5);
+
+	if (captureLive != nullptr)
+	{
+		delete captureLive;
+		captureLive = nullptr;
+	}
+}
+
+
+LRESULT COpenCvDlg::UpdateVidoRec(WPARAM wParam, LPARAM lParam)
+{
+	if (m_bVidoRec == FALSE)
+	{
+		return 0L;
+	}
+	
+	SetLiveView();
+	return 0L;
+}
+
+UINT COpenCvDlg::ThreadForCounting(LPVOID param)
+{
+	COpenCvDlg* pMain = (COpenCvDlg*)param;
+
+	while (pMain->m_isWorkingThread)
+	{
+		Sleep(30);
+		pMain->SendMessage(MESSAGE_VIDOEO_REC, NULL, NULL);
+	}
+
+	return 0;
+}
+
+void COpenCvDlg::CreateBitmapInfo(int w, int h, int bpp)
+{
+
+	BITMAPINFO* bitInfo = nullptr;
+
+	if (bpp == 8)
+		bitInfo = (BITMAPINFO *) new BYTE[sizeof(BITMAPINFO) + 255 * sizeof(RGBQUAD)];
+	else // 24 or 32bit
+		bitInfo = (BITMAPINFO *) new BYTE[sizeof(BITMAPINFO)];
+
+	bitInfo->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bitInfo->bmiHeader.biPlanes = 1;
+	bitInfo->bmiHeader.biBitCount = bpp;
+	bitInfo->bmiHeader.biCompression = BI_RGB;
+	bitInfo->bmiHeader.biSizeImage = 0;
+	bitInfo->bmiHeader.biXPelsPerMeter = 0;
+	bitInfo->bmiHeader.biYPelsPerMeter = 0;
+	bitInfo->bmiHeader.biClrUsed = 0;
+	bitInfo->bmiHeader.biClrImportant = 0;
+
+	if (bpp == 8)
+	{
+		for (int i = 0; i < 256; i++)
+		{
+			bitInfo->bmiColors[i].rgbBlue = (BYTE)i;
+			bitInfo->bmiColors[i].rgbGreen = (BYTE)i;
+			bitInfo->bmiColors[i].rgbRed = (BYTE)i;
+			bitInfo->bmiColors[i].rgbReserved = 0;
+		}
+	}
+
+	bitInfo->bmiHeader.biWidth = w;
+	bitInfo->bmiHeader.biHeight = -h;
+
+	DrawImage(bitInfo);
+
+	if (bitInfo != NULL)
+	{
+		delete[]bitInfo;
+		bitInfo = NULL;
+	}
+}
+
+void COpenCvDlg::DrawImage(BITMAPINFO *bitInfo)
+{
+	CClientDC dc(GetDlgItem(IDC_PICTURE_LIVE));
+
+	CRect rect;
+	GetDlgItem(IDC_PICTURE_LIVE)->GetClientRect(&rect);
+
+	SetStretchBltMode(dc.GetSafeHdc(), COLORONCOLOR);
+	StretchDIBits(dc.GetSafeHdc(), 0, 0, rect.Width(), rect.Height(), 0, 0, mat_frame.cols, mat_frame.rows, mat_frame.data, bitInfo, DIB_RGB_COLORS, SRCCOPY);
+
 }
