@@ -17,7 +17,7 @@ public:
 	enum { IDD = IDD_OPENCV_DIALOG };
 #endif
 
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 지원입니다.
 
 
@@ -31,12 +31,15 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
-public:
 
+private:
+	int m_nViewRot = 0;
+public:
 	VideoCapture *captureLive;
 	Mat mat_frame;
 	CImage cimage_mfc;
 
+public:
 
 	afx_msg void OnBnClickedBtnImageLoad();
 	afx_msg void OnDestroy();
@@ -56,9 +59,13 @@ public:
 	BOOL m_isWorkingThread = FALSE;
 	CWinThread* m_pThread = nullptr;
 	afx_msg void OnBnClickedBtnLiveRecStop();
+	afx_msg void OnBnClickedRadioViewRotation(UINT nID);
 
+	void UdateDataPictureBackground();
 	LRESULT UpdateVidoRec(WPARAM wParam, LPARAM lParam);
 
+	int GetViewRot() const { return m_nViewRot; }
+	void SetViewRot(int val) { m_nViewRot = val; }
 
-
+	afx_msg void OnBnClickedBntTest();
 };

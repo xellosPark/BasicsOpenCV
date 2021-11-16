@@ -14,6 +14,9 @@
 
 // 응용 프로그램 정보에 사용되는 CAboutDlg 대화 상자입니다.
 
+#define CAM_VIEW_SIZE_FRAME_WIDTH   320
+#define CAM_VIEW_SIZE_FRAME_HEIGHT  240
+
 class CAboutDlg : public CDialogEx
 {
 public:
@@ -53,6 +56,9 @@ COpenCvDlg::COpenCvDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_OPENCV_DIALOG, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	
+	
+	SetViewRot(0);
 }
 
 void COpenCvDlg::DoDataExchange(CDataExchange* pDX)
@@ -74,6 +80,8 @@ BEGIN_MESSAGE_MAP(COpenCvDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_LIVE_REC_PLAY, &COpenCvDlg::OnBnClickedBtnLiveRecPlay)
 	ON_BN_CLICKED(IDC_BTN_LIVE_REC_STOP, &COpenCvDlg::OnBnClickedBtnLiveRecStop)
 	ON_MESSAGE(MESSAGE_VIDOEO_REC, &COpenCvDlg::UpdateVidoRec)
+	ON_CONTROL_RANGE(BN_CLICKED, IDC_RADIO_R_0, IDC_RADIO_R_270, &COpenCvDlg::OnBnClickedRadioViewRotation)
+	ON_BN_CLICKED(IDC_BNT_TEST, &COpenCvDlg::OnBnClickedBntTest)
 END_MESSAGE_MAP()
 
 
@@ -111,6 +119,8 @@ BOOL COpenCvDlg::OnInitDialog()
 	//ShowWindow(SW_MINIMIZE);
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
+	CheckRadioButton(IDC_RADIO_R_0, IDC_RADIO_R_270, IDC_RADIO_R_0);
+	
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -212,7 +222,7 @@ void COpenCvDlg::OnBnClickedBtnImageLoad()
 		imshow("image", cv_matImg); // "Image"라는 이름의 창에 이미지를 넣어 보여줌
 		// waitKey(int delay)	 
 		waitKey(); // 종료 키 대기
-		destroyAllWindows();
+		cv::destroyAllWindows();
 	}
 }
 
@@ -250,7 +260,7 @@ void COpenCvDlg::OnBnClickedBtnMetCopy()
 		imshow("img5", cv_Img5); // "Image"라는 이름의 창에 이미지를 넣어 보여줌
 								 // waitKey(int delay)	 
 		waitKey(); // 종료 키 대기
-		destroyAllWindows();
+		cv::destroyAllWindows();
 	}
 }
 
@@ -289,7 +299,7 @@ void COpenCvDlg::OnBnClickedBtnMetImagePart()
 		imshow("image", cv_Img2); // "Image"라는 이름의 창에 이미지를 넣어 보여줌
 		imshow("image2", cv_Img3); // "Image"라는 이름의 창에 이미지를 넣어 보여줌
 		waitKey(); // 종료 키 대기
-		destroyAllWindows();
+		cv::destroyAllWindows();
 		
 	}
 }
@@ -317,12 +327,13 @@ void COpenCvDlg::OnBnClickedBtnVidoeoLoad2()
 	//domain_offset_id는, 카메라를 사용하는 방식을 표현하는 정수 값으로, VideoCaptureAPIs를 사용합니다.
 	//보통은, 0(CAP_ANY)를 사용하니, index 값은 결국 camera_id와 같이 사용합니다.
 	
+	VideoCapture *cap = NULL;
+	cap = new VideoCapture(0);
 
-	VideoCapture cap(0);
-
-	if (cap.isOpened() == FALSE)
+	if (cap->isOpened() == FALSE)
 	{
 		AfxMessageBox(_T("캠을 없습니다."));
+		cap->release();
 		return;
 	}
 	// 각각 너비와 높이
@@ -330,22 +341,44 @@ void COpenCvDlg::OnBnClickedBtnVidoeoLoad2()
 	//int w = cvRound(cap.get(CAP_PROP_FRAME_WIDTH));
 	//int h = cvRound(cap.get(CAP_PROP_FRAME_HEIGHT));
 
+	//웹캠 크기를  320x240으로 지정    	
+	cap->set(CAP_PROP_FRAME_WIDTH, CAM_VIEW_SIZE_FRAME_WIDTH);
+	cap->set(CAP_PROP_FRAME_HEIGHT, CAM_VIEW_SIZE_FRAME_HEIGHT);
+
+
+	//int nSel = GetCheckedRadioButton(IDC_RADIO_R_0, IDC_RADIO_R_270);
+	// 영상 반전 함수
 	Mat frame, inversed;
 	while (true)
 	{ 
-		cap >> frame;
+		*cap >> frame;
 		// 해당 프레임 영상이 비어 있으면 빠져나감
-		if ( frame.empty())	{ AfxMessageBox(_T("프레임 영상이 EMPTY 상태입니다.")); break; }
-		
+		if ( frame.empty() )	
+		{
+			AfxMessageBox(_T("프레임 영상이 EMPTY 상태입니다."));
+			cap->release();
+			break;
+		}
+
+		// 영상 회전
+		Point Center(CAM_VIEW_SIZE_FRAME_WIDTH / 2, CAM_VIEW_SIZE_FRAME_HEIGHT / 2);
+		// getRotationMatrix2D( 중심점, 회전 각도, 크키 배울 )
+		Mat metRotation = getRotationMatrix2D(Center, GetViewRot(), 1);
+		cv::flip(frame, frame, 1); //0:정상 1:좌우 반전 -1:상하좌우 반전
+		warpAffine(frame, frame, metRotation, frame.size());
 		inversed = ~frame;
 
 		imshow("frame", frame);
-		imshow("inversed", inversed);
+		//imshow("inversed", inversed);
 
 		// ECS Key
-		if ( waitKey(10) == 27){ break; }
+		if ( waitKey(10) == 27)
+		{
+			cap->release();
+			break; 
+		}
 	}
-	destroyAllWindows();
+	cv::destroyAllWindows();
 }
 
 
@@ -410,7 +443,7 @@ void COpenCvDlg::OnBnClickedBtnVidoeoPlay()
 			if (waitKey(delay) == 27)
 				break;
 		}
-		destroyAllWindows();
+		cv::destroyAllWindows();
 		
 
 
@@ -516,7 +549,7 @@ void COpenCvDlg::OnBnClickedBtnVidoeoSave()
 			break;
 	}
 
-	destroyAllWindows();
+	cv::destroyAllWindows();
 }
 
 BOOL COpenCvDlg::SetLiveView()
@@ -665,6 +698,31 @@ void COpenCvDlg::OnBnClickedBtnLiveRecPlay()
 	}
 }
 
+UINT COpenCvDlg::ThreadForCounting(LPVOID param)
+{
+	COpenCvDlg* pMain = (COpenCvDlg*)param;
+
+	while (pMain->m_isWorkingThread)
+	{
+		Sleep(30);
+		pMain->SendMessage(MESSAGE_VIDOEO_REC, NULL, NULL);
+	}
+
+	return 0;
+}
+
+LRESULT COpenCvDlg::UpdateVidoRec(WPARAM wParam, LPARAM lParam)
+{
+	if (m_bVidoRec == FALSE)
+	{
+		return 0L;
+	}
+
+	SetLiveView();
+	return 0L;
+}
+
+
 void COpenCvDlg::OnBnClickedBtnLiveRecStop()
 {
 	if (m_bVidoRec == FALSE)
@@ -680,31 +738,6 @@ void COpenCvDlg::OnBnClickedBtnLiveRecStop()
 		delete captureLive;
 		captureLive = nullptr;
 	}
-}
-
-
-LRESULT COpenCvDlg::UpdateVidoRec(WPARAM wParam, LPARAM lParam)
-{
-	if (m_bVidoRec == FALSE)
-	{
-		return 0L;
-	}
-	
-	SetLiveView();
-	return 0L;
-}
-
-UINT COpenCvDlg::ThreadForCounting(LPVOID param)
-{
-	COpenCvDlg* pMain = (COpenCvDlg*)param;
-
-	while (pMain->m_isWorkingThread)
-	{
-		Sleep(30);
-		pMain->SendMessage(MESSAGE_VIDOEO_REC, NULL, NULL);
-	}
-
-	return 0;
 }
 
 void COpenCvDlg::CreateBitmapInfo(int w, int h, int bpp)
@@ -760,4 +793,60 @@ void COpenCvDlg::DrawImage(BITMAPINFO *bitInfo)
 	SetStretchBltMode(dc.GetSafeHdc(), COLORONCOLOR);
 	StretchDIBits(dc.GetSafeHdc(), 0, 0, rect.Width(), rect.Height(), 0, 0, mat_frame.cols, mat_frame.rows, mat_frame.data, bitInfo, DIB_RGB_COLORS, SRCCOPY);
 
+}
+
+void COpenCvDlg::OnBnClickedRadioViewRotation(UINT nID)
+{
+	int iRotType = nID - IDC_RADIO_R_0;
+	int iRotRulet(0);
+	switch (iRotType)
+	{
+	case 0: SetViewRot(0);   break;
+	case 1: SetViewRot(90);  break;
+	case 2: SetViewRot(180); break;
+	case 3: SetViewRot(270); break;
+	default:SetViewRot(0);   break;
+	}
+
+}
+
+void COpenCvDlg::UdateDataPictureBackground()
+{
+	
+	CStatic *staticSize = (CStatic *)GetDlgItem(IDC_PICTURE_MUNU);
+	CDC* pDC = staticSize->GetWindowDC();
+	COLORREF filColor = RGB(218, 217, 255);
+	CPen*	pOldPen, NewPen;
+	CBrush* pOldBrush, NewBrush(filColor);
+
+	pOldBrush = pDC->SelectObject(&NewBrush);
+	NewPen.CreatePen(PS_SOLID, 5, RGB(192, 0, 0));
+	pOldPen = pDC->SelectObject(&NewPen);
+
+
+	CRect rect;
+	int iWidth = 0;
+	int iHeight = 0;
+
+
+	staticSize->GetClientRect(rect);
+	iWidth = rect.Width();
+	iHeight = rect.Height();
+
+	pDC->FillRect(rect, &NewBrush);
+	pDC->SelectObject(pOldBrush);
+	pDC->SelectObject(pOldPen);
+
+
+	NewPen.DeleteObject();
+	NewBrush.DeleteObject();
+
+	ReleaseDC(pDC);
+}
+
+
+
+void COpenCvDlg::OnBnClickedBntTest()
+{
+	UdateDataPictureBackground();
 }
